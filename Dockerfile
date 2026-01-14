@@ -1,18 +1,21 @@
-# 1. Start with Node installed
 FROM node:18-slim
 
-# 2. Set working directory
 WORKDIR /app
 
-# 3. Copy package files and install deps
-COPY package*.json ./
-RUN npm install --omit=dev --legacy-peer-deps
+# Enable pnpm via Corepack (official Node tool)
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# 4. Copy the rest of the source code
+# Copy dependency manifests
+COPY package.json pnpm-lock.yaml* ./
+
+# Install only production dependencies
+RUN pnpm install --prod
+
+# Copy the rest of the source
 COPY . .
 
-# 5. Tell Fly which port the app will use
+# Fly routes traffic to this port
 EXPOSE 8080
 
-# 6. Start the server
-CMD ["npm", "start"]
+# Start Scramjet
+CMD ["pnpm", "start"]
