@@ -1,5 +1,5 @@
 # 1. Start with Node installed
-FROM node:18-alpine
+FROM node:18-slim
 
 # 2. Set working directory
 WORKDIR /app
