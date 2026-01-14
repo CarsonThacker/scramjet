@@ -17,17 +17,20 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy dependency manifests first for caching
 COPY package.json pnpm-lock.yaml* ./
 
-# Install deps (includes dev deps; your runtime needs some of them)
+# Install deps (includes dev deps; needed for build)
 RUN pnpm install --config.strict-peer-dependencies=false
 
 # Copy source
 COPY . .
 
-# Build (Scramjet projects often use build:all; fall back safely)
-RUN if pnpm -s run | grep -qE 'build:all'; then \
+# Build:
+# IMPORTANT: build:wasm must run BEFORE build/build:all so wasm outputs exist.
+RUN set -eux; \
+    if pnpm -s run | grep -qE 'build:wasm'; then \
+      pnpm run build:wasm; \
+    fi; \
+    if pnpm -s run | grep -qE 'build:all'; then \
       pnpm run build:all; \
-    elif pnpm -s run | grep -qE 'build:wasm'; then \
-      pnpm run build:wasm && pnpm run build; \
     else \
       pnpm run build; \
     fi
