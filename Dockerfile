@@ -2,20 +2,22 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Enable pnpm via Corepack (required by Scramjet)
+# Enable pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy dependency manifests
 COPY package.json pnpm-lock.yaml* ./
 
-# Install ALL dependencies (Scramjet requires full install)
-# Disable strict peer dependency enforcement (pnpm equivalent of npm --legacy-peer-deps)
+# Install all dependencies
 RUN pnpm install --config.strict-peer-dependencies=false
 
-# Copy the rest of the source code
+# Copy source
 COPY . .
 
-# Fly routes traffic here
+# 🔑 BUILD frontend assets for production
+RUN pnpm build
+
+# Fly expects this port
 EXPOSE 8080
 
 # Start Scramjet
